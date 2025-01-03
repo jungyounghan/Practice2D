@@ -8,6 +8,7 @@ using UnityEngine.SceneManagement;
 public abstract class Manager<T> : MonoBehaviour where T: MonoBehaviour
 {
     private static readonly string TextDontDestroyOnLoad = "DontDestroyOnLoad";
+    //private static readonly string TextFolderPath = "Assets/Resources/Managers/";
 
     //해당 객체를 씬 전환 시 삭제 여부를 판단하는 변수
     protected bool _destroyOnLoad;
@@ -21,7 +22,24 @@ public abstract class Manager<T> : MonoBehaviour where T: MonoBehaviour
             //만약 싱글턴을 호출 했는데 내용이 없을 경우 새로운 게임 오브젝트를 만들어서 내용물을 넣어준다.
             if (_instance == null)
             {
-                new GameObject().AddComponent<T>().gameObject.name = _instance.GetType().Name;
+                //StringBuilder currentPath = new StringBuilder();
+                //StringBuilder previousPath = new StringBuilder();
+                //string[] path = TextFolderPath.Split('/');
+                //int length = path.Length - 1;
+                //for (int i = 0; i < length; ++i)
+                //{
+                //    currentPath.Append(path[i]);
+                //    if (Directory.Exists(currentPath.ToString()) == false)
+                //    {
+                //        AssetDatabase.CreateFolder(previousPath.ToString(), path[i]);
+                //    }
+                //    previousPath.Clear();
+                //    previousPath.Append(currentPath);
+                //    currentPath.Append("/");
+                //}
+                GameObject gameObject = new GameObject();
+                gameObject.AddComponent<T>();
+                gameObject.name = _instance.GetType().Name;
             }
             return _instance;
         }
@@ -114,5 +132,8 @@ public abstract class Manager<T> : MonoBehaviour where T: MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 초기화 추상 함수
+    /// </summary>
     protected abstract void Initialize();
 }

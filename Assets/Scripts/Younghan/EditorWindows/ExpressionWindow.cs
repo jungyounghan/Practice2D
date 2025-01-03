@@ -11,7 +11,7 @@ public class ExpressionWindow : EditorWindow
 {
     private static readonly string TEXT_SELECTED_FORMULA = "선택된 수식";
     private static readonly string TEXT_SELECTED_UNKNOWN = "선택된 미지수의 값";
-    private static readonly string TEXT_FOLDER_PATH = "Assets/" + Archive.TEXT_PATH_RESOURCES + "/" + Archive.TEXT_PATH_EXPRESSIONS + "/";
+    private static readonly string TEXT_FOLDER_PATH = "Assets/Resources/Managers/";
 
     private const bool SELECTION_WRITE = true;
     private const bool SELECTION_READ = false;

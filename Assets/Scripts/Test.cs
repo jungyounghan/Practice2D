@@ -7,7 +7,7 @@ public class Test : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
+        GameManager manager = GameManager.instance;
     }
 
     // Update is called once per frame

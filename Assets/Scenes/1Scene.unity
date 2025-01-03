@@ -133,9 +133,6 @@ GameObject:
   m_Component:
   - component: {fileID: 970363197}
   - component: {fileID: 970363198}
-  - component: {fileID: 970363199}
-  - component: {fileID: 970363200}
-  - component: {fileID: 970363201}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: Untagged
@@ -170,63 +167,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ebefd6f73c3f7734987bc046f4dae96a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &970363199
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 970363194}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f16640bb57fe41941bcb22caae89d717, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  controller1: {fileID: 0}
-  controller2: {fileID: 0}
---- !u!114 &970363200
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 970363194}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c76f28aacb875fd44a6ab72cdc3579e5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &970363201
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 970363194}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: deb9f0dff5557b0488e7e112531cb5c0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _target: {fileID: 0}
-  upInput:
-    keyCodes: 
-  downInput:
-    keyCodes: 
-  leftInput:
-    keyCodes: 
-  rightInput:
-    keyCodes: 
-  jumpInput:
-    keyCodes: 
-  healInput:
-    keyCodes: 
-  attack1Input:
-    keyCodes: 
-  attack2Input:
-    keyCodes: 
-  attack3Input:
-    keyCodes: 
 --- !u!1 &2098110079
 GameObject:
   m_ObjectHideFlags: 0
