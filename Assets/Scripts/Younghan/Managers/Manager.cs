@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -7,11 +9,8 @@ using UnityEngine.SceneManagement;
 [DisallowMultipleComponent]
 public abstract class Manager<T> : MonoBehaviour where T: MonoBehaviour
 {
+    //DontDestroyOnLoad씬의 이름 텍스트
     private static readonly string TextDontDestroyOnLoad = "DontDestroyOnLoad";
-    //private static readonly string TextFolderPath = "Assets/Resources/Managers/";
-
-    //해당 객체를 씬 전환 시 삭제 여부를 판단하는 변수
-    protected bool _destroyOnLoad;
 
     //싱글턴 객체
     private static T _instance = null;
@@ -22,21 +21,6 @@ public abstract class Manager<T> : MonoBehaviour where T: MonoBehaviour
             //만약 싱글턴을 호출 했는데 내용이 없을 경우 새로운 게임 오브젝트를 만들어서 내용물을 넣어준다.
             if (_instance == null)
             {
-                //StringBuilder currentPath = new StringBuilder();
-                //StringBuilder previousPath = new StringBuilder();
-                //string[] path = TextFolderPath.Split('/');
-                //int length = path.Length - 1;
-                //for (int i = 0; i < length; ++i)
-                //{
-                //    currentPath.Append(path[i]);
-                //    if (Directory.Exists(currentPath.ToString()) == false)
-                //    {
-                //        AssetDatabase.CreateFolder(previousPath.ToString(), path[i]);
-                //    }
-                //    previousPath.Clear();
-                //    previousPath.Append(currentPath);
-                //    currentPath.Append("/");
-                //}
                 GameObject gameObject = new GameObject();
                 gameObject.AddComponent<T>();
                 gameObject.name = _instance.GetType().Name;
@@ -44,6 +28,32 @@ public abstract class Manager<T> : MonoBehaviour where T: MonoBehaviour
             return _instance;
         }
     }
+
+    //해당 객체를 씬 전환 시 삭제 여부를 판단하는 변수
+    protected bool _destroyOnLoad;
+
+    //수행 중인 코루틴의 키 값과 밸류 값을 담은 구조체
+    private struct Coroutine
+    {
+        public IEnumerator key {
+            get;
+            private set;
+        }
+
+        public IEnumerator value {
+            get;
+            private set;
+        }
+
+        public Coroutine(IEnumerator key, IEnumerator value)
+        {
+            this.key = key;
+            this.value = value;
+        }
+    }
+
+    //동작 중인 코루틴 객체들을 담은 리스트
+    private List<Coroutine> _coroutineList = new List<Coroutine>();
 
     /// <summary>
     /// 이 함수는 스크립트가 로드되거나 검사기에서 값이 변경될 때 호출된다.(편집기에서만 호출됨)
@@ -130,6 +140,100 @@ public abstract class Manager<T> : MonoBehaviour where T: MonoBehaviour
                 };
             }
         }
+    }
+
+    /// <summary>
+    /// 리스트에 코루틴 내용을 저장하고 코루틴을 실행한 후에 작동이 끝나면 코루틴 내용을 삭제해주는 함수
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="force"></param>
+    protected void StartCoroutine(IEnumerator enumerator, bool force)
+    {
+        if(force == false)
+        {
+            int count = _coroutineList.Count;
+            for(int i = 0; i < count; i++)
+            {
+                if (string.Equals(enumerator.ToString(), _coroutineList[i].key.ToString()) == true)
+                {
+                    return;
+                }
+            }
+        }
+        IEnumerator value = DoWaitingForEnd();
+        StartCoroutine(value);
+        _coroutineList.Add(new Coroutine(enumerator, value));
+        IEnumerator DoWaitingForEnd()
+        {
+            yield return StartCoroutine(enumerator);
+            int count = _coroutineList.Count;
+            for(int i = 0; i < count; i++)
+            {
+                if(enumerator == _coroutineList[i].key)
+                {
+                    _coroutineList.RemoveAt(i);
+                    break;
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 리스트에 특정 코루틴 내용이 실행 중이라면 중지하고 코루틴 내용을 삭제해주는 함수
+    /// </summary>
+    /// <param name="enumerator"></param>
+    /// <param name="all"></param>
+    protected void StopCoroutine(IEnumerator enumerator, bool all)
+    {
+        do
+        {
+            bool done = true;
+            int count = _coroutineList.Count;
+            for (int i = 0; i < count; i++)
+            {
+                if (string.Equals(enumerator.ToString(), _coroutineList[i].key.ToString()) == true)
+                {
+                    StopCoroutine(_coroutineList[i].value);
+                    _coroutineList.RemoveAt(i);
+                    done = false;
+                    break;
+                }
+            }
+            if (done == true)
+            {
+                break;
+            }
+        } while (all == true);
+    }
+
+    /// <summary>
+    /// 코루틴 함수가 동작 하는지 여부를 알려주는 함수
+    /// </summary>
+    /// <returns>코루틴이 하나라도 동작하면 참을 반환한다.</returns>
+    protected bool IsCoroutineWorking()
+    {
+        if(_coroutineList.Count > 0)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 특정 코루틴 함수가 동작 하는지 여부를 알려주는 함수
+    /// </summary>
+    /// <returns>특정 코루틴이 동작하고 있다면 참을 반환한다.</returns>
+    protected bool IsCoroutineWorking(IEnumerator enumerator)
+    {
+        int count = _coroutineList.Count;
+        for(int i = 0; i < count; i++)
+        {
+            if(string.Equals(enumerator.ToString(), _coroutineList[i].key.ToString()) == true)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     /// <summary>

@@ -11,5 +11,6 @@ public class GameManager : Manager<GameManager>
     protected override void Initialize()
     {
         _destroyOnLoad = true;
+        SoundManager.Play(Sound.Music.Start);
     }
 }

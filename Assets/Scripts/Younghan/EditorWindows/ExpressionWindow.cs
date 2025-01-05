@@ -13,6 +13,8 @@ public class ExpressionWindow : EditorWindow
     private static readonly string TEXT_SELECTED_UNKNOWN = "선택된 미지수의 값";
     private static readonly string TEXT_FOLDER_PATH = "Assets/Resources/Managers/";
 
+    //private static readonly string TextFolderPath = "Assets/Resources/Managers/";
+
     private const bool SELECTION_WRITE = true;
     private const bool SELECTION_READ = false;
 
@@ -98,6 +100,27 @@ public class ExpressionWindow : EditorWindow
                     }
                     else
                     {
+
+                        //StringBuilder currentPath = new StringBuilder();
+                        //StringBuilder previousPath = new StringBuilder();
+                        //string[] path = TextFolderPath.Split('/');
+                        //int length = path.Length - 1;
+                        //for (int i = 0; i < length; ++i)
+                        //{
+                        //    currentPath.Append(path[i]);
+                        //    if (Directory.Exists(currentPath.ToString()) == false)
+                        //    {
+                        //        AssetDatabase.CreateFolder(previousPath.ToString(), path[i]);
+                        //    }
+                        //    previousPath.Clear();
+                        //    previousPath.Append(currentPath);
+                        //    currentPath.Append("/");
+                        //}
+
+
+
+
+
                         //해당 경로에 폴더가 없다면 새로 생성
                         if (Directory.Exists(TEXT_FOLDER_PATH) == false)
                         {                            //Directory.CreateDirectory(path); 바로 인식이 안됨

@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Sound;
@@ -8,12 +9,14 @@ namespace Sound
     //배경음악
     public enum Music
     {
+        Start,
         End
     }
 
     //효과음
     public enum Effect
     {
+        Start,
         End
     }
 }
@@ -24,21 +27,69 @@ namespace Sound
 [RequireComponent(typeof(AudioSource))]
 public class SoundManager : Manager<SoundManager>
 {
-    private bool _hasAudioSource = false;
+    private bool _hasAudioSource1 = false;
 
-    private AudioSource _audioSource;
+    private AudioSource _audioSource1;
 
-    //배경음악을 담당하는 오디오 소스 객체
-    private AudioSource getMusicAudio
+    //배경음악을 담당하는 오디오 소스 객체1
+    private AudioSource getMusicAudio1
     {
         get
         {
-            if(_hasAudioSource == false)
+            if(_hasAudioSource1 == false)
             {
-                _hasAudioSource = true;
-                _audioSource = GetComponent<AudioSource>();
+                _hasAudioSource1 = true;
+                _audioSource1 = GetComponent<AudioSource>();
+                _audioSource1.playOnAwake = false;
+                _audioSource1.loop = true;
             }
-            return _audioSource;
+            return _audioSource1;
+        }
+    }
+
+    private bool _hasAudioSource2 = false;
+
+    private AudioSource _audioSource2;
+
+    //배경음악을 담당하는 오디오 소스 객체2
+    private AudioSource getMusicAudio2 {
+        get
+        {
+            if (_hasAudioSource2 == false)
+            {
+                _hasAudioSource2 = true;
+                AudioSource[] audioSources = GetComponents<AudioSource>();
+                AudioSource audioSource = null;
+                int length = audioSources.Length;
+                for(int i = 0; i < length; i++)
+                {
+                    if(audioSources[i] != getMusicAudio1)
+                    {
+                        bool success = true;
+                        int count = _effectAudioList.Count;
+                        for(int j = 0; j < count; j++)
+                        {
+                            if(audioSources[i] == _effectAudioList[j])
+                            {
+                                success = false;
+                                break;
+                            }
+                        }
+                        if(success == true)
+                        {
+                            audioSource = audioSources[i];
+                        }
+                    }
+                    if(audioSource != null)
+                    {
+                        break;
+                    }
+                }
+                _audioSource2 = audioSource != null ? audioSource : gameObject.AddComponent<AudioSource>();
+                _audioSource2.playOnAwake = false;
+                _audioSource2.loop = true;
+            }
+            return _audioSource2;
         }
     }
 
@@ -53,40 +104,183 @@ public class SoundManager : Manager<SoundManager>
     [SerializeField, Header("사용할 효과음 클립들")]
     private AudioClip[] _effectClips = new AudioClip[(int)Effect.End];
 
+    //배경음악 볼륨
+    [SerializeField, Header("배경음악 볼륨"), Range(0, 1)]
+    private float _musicVolume;
+    public static float musicVolume {
+        get
+        {
+            return instance._musicVolume;
+        }
+        set
+        {
+            instance._musicVolume = Mathf.Clamp01(value);
+            if (instance.IsCoroutineWorking() == false)
+            {
+                if (instance.getMusicAudio1.isPlaying == true)
+                {
+                    instance.getMusicAudio1.volume = instance._musicVolume;
+                }
+                if (instance.getMusicAudio2.isPlaying == true)
+                {
+                    instance.getMusicAudio2.volume = instance._musicVolume;
+                }
+            }
+        }
+    }
+
+    //효과음 볼륨
+    [SerializeField, Header("효과음 볼륨"), Range(0, 1)]
+    private float _effectVolume;
+
+    public static float effectVolume {
+        get
+        {
+            return instance._effectVolume;
+        }
+        set
+        {
+            instance._effectVolume = Mathf.Clamp01(value);
+            int count = instance._effectAudioList.Count;
+            for(int i = 0; i < count; i++)
+            {
+                instance._effectAudioList[i].volume = instance._effectVolume;
+            }
+        }
+    }
+
     /// <summary>
-    /// 초기화 함수: 삭제 방지와 배경음악 루틴을 반복으로 설정한다.
+    /// 이 함수는 스크립트가 로드되거나 검사기에서 값이 변경될 때 호출된다.(편집기에서만 호출됨)
+    /// </summary>
+#if UNITY_EDITOR
+    protected override void OnValidate()
+    {
+        base.OnValidate();
+        if (instance == this)
+        {
+            musicVolume = _musicVolume;
+            effectVolume = _effectVolume;
+        }
+    }
+#endif
+
+    /// <summary>
+    /// 초기화 함수: 싱글턴 객체의 삭제를 방지한다.
     /// </summary>
     protected override void Initialize()
     {
         _destroyOnLoad = false;
-        getMusicAudio.loop = true;
     }
 
     /// <summary>
     /// 배경음악을 플레이 시켜주는 함수(인덱스를 벗어나면 배경음을 정지 시킴)
     /// </summary>
     /// <param name="music"></param>
-    public static void Play(Music music)
+    public static void Play(Music music, bool immediately = false)
     {
         int index = (int)music;
         int length = instance._musicClips.Length;
         if (index >= 0 && index < length)
         {
-            instance.getMusicAudio.clip = instance._musicClips[index];
-            instance.getMusicAudio.Play();
+            if (instance._musicClips[index] != null)
+            {
+                instance.StopCoroutine(DoSmoothlyPlay(null, null), true);
+                if (immediately == true)
+                {
+                    if (instance.getMusicAudio1.isPlaying == false)
+                    {
+                        Play(instance.getMusicAudio1, instance.getMusicAudio2);
+                    }
+                    else
+                    {
+                        Play(instance.getMusicAudio2, instance.getMusicAudio1);
+                    }
+                    void Play(AudioSource crescendo, AudioSource diminuendo)
+                    {
+                        diminuendo.Stop();
+                        crescendo.clip = instance._musicClips[index];
+                        crescendo.volume = musicVolume;
+                        crescendo.Play();
+                    }
+                }
+                else
+                {
+                    if (instance.getMusicAudio1.isPlaying == false)
+                    {
+                        instance.StartCoroutine(DoSmoothlyPlay(instance.getMusicAudio1, instance.getMusicAudio2), true);
+                    }
+                    else
+                    {
+                        instance.StartCoroutine(DoSmoothlyPlay(instance.getMusicAudio2, instance.getMusicAudio1), true);
+                    }
+                }
+                IEnumerator DoSmoothlyPlay(AudioSource crescendo, AudioSource diminuendo)
+                {
+                    crescendo.clip = instance._musicClips[index];
+                    crescendo.Play();
+                    float volume = 0;
+                    while (volume < musicVolume)
+                    {
+                        crescendo.volume = volume;
+                        diminuendo.volume = Mathf.Clamp01(musicVolume - volume);
+                        volume += Time.deltaTime;
+                        yield return null;
+                    }
+                    crescendo.volume = musicVolume;
+                    diminuendo.volume = 0;
+                    diminuendo.Stop();
+                }
+            }
         }
         else
         {
-            StopMusic();
+            StopMusic(immediately);
         }
     }
 
     /// <summary>
     /// 배경음악을 정지 시켜주는 함수
     /// </summary>
-    public static void StopMusic()
+    public static void StopMusic(bool immediately = false)
     {
-        instance.getMusicAudio.Stop();
+        instance.StopCoroutine(DoSmoothlyStop(), true);
+        if (immediately == true)
+        {
+            instance.getMusicAudio1.Stop();
+            instance.getMusicAudio2.Stop();
+        }
+        else
+        {
+            instance.StartCoroutine(DoSmoothlyStop(), true);
+        }
+        IEnumerator DoSmoothlyStop()
+        {
+            float audio1Value = instance.getMusicAudio1.isPlaying == true ? instance.getMusicAudio1.volume : 0;
+            float audio2Value = instance.getMusicAudio2.isPlaying == true ? instance.getMusicAudio2.volume : 0;
+            while (audio1Value > 0 || audio2Value > 0)
+            {
+                float deltaTime = Time.deltaTime;
+                if (audio1Value > 0)
+                {
+                    audio1Value -= deltaTime;
+                    instance.getMusicAudio1.volume = audio1Value;
+                }
+                else if (instance.getMusicAudio1.isPlaying == true)
+                {
+                    instance.getMusicAudio1.Stop();
+                }
+                if (audio2Value > 0)
+                {
+                    audio2Value -= deltaTime;
+                    instance.getMusicAudio2.volume = audio2Value;
+                }
+                else if (instance.getMusicAudio2.isPlaying == true)
+                {
+                    instance.getMusicAudio2.Stop();
+                }
+                yield return null;
+            }
+        }
     }
 
     /// <summary>
@@ -109,7 +303,9 @@ public class SoundManager : Manager<SoundManager>
                 }
             }
             AudioSource audioSource = instance.gameObject.AddComponent<AudioSource>();
+            audioSource.playOnAwake = false;
             audioSource.loop = false;
+            audioSource.volume = effectVolume;
             audioSource.PlayOneShot(instance._effectClips[index]);
             instance._effectAudioList.Add(audioSource);
         }
@@ -126,40 +322,4 @@ public class SoundManager : Manager<SoundManager>
             instance._effectAudioList[i].Stop();
         }
     }
-
-    //public static void SetMuteSfx(bool _mute)
-    //{
-    //    Instance.sfxSource.mute = _mute;
-    //}
-    //public static void SetMuteBgm(bool _mute)
-    //{
-    //    Instance.bgmSource.mute = _mute;
-    //}
-
-    //public static void ChangeSfxVolume(float _value)
-    //{
-    //    Instance.sfxSource.volume = _value;
-    //}
-    //public static void ChangeBgmVolume(float _value)
-    //{
-    //    Instance.bgmSource.volume = _value;
-    //}
-
-    //public static float GetVolumeSfx()
-    //{
-    //    return Instance.sfxSource.volume;
-    //}
-    //public static float GetVolumeBgm()
-    //{
-    //    return Instance.bgmSource.volume;
-    //}
-
-    //public static bool GetMuteSfx()
-    //{
-    //    return Instance.sfxSource.mute;
-    //}
-    //public static bool GetMuteBgm()
-    //{
-    //    return Instance.bgmSource.mute;
-    //}
 }
