@@ -22,7 +22,7 @@ namespace Sound
 }
 
 /// <summary>
-/// 게임의 배경음악과 효과음을 총괄하는 매니저 싱글턴을 상속 받은 클래스
+/// 게임의 배경음악과 효과음을 총괄하는 매니저, 싱글턴을 상속 받은 클래스
 /// </summary>
 [RequireComponent(typeof(AudioSource))]
 public class SoundManager : Manager<SoundManager>

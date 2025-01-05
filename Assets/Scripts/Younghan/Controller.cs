@@ -1,10 +1,18 @@
 using System;
 using UnityEngine;
 
+/// <summary>
+/// 키보드 입력을 이용하여 플레이어를 조종할 수 있는 클래스
+/// </summary>
 public class Controller : MonoBehaviour
 {
-    [SerializeField]
-    private Transform _target = null;
+    //오른쪽 이동 방향
+    private const bool RightDirection = true;
+    //왼쪽 이동 방향
+    private const bool LeftDirection = false;
+
+    //조종할 대상 플레이어
+    public Player player;
 
     [Serializable]
     private struct Input
@@ -49,9 +57,24 @@ public class Controller : MonoBehaviour
         Set(ref attack1Input);
         Set(ref attack2Input);
         Set(ref attack3Input);
-        if (_target != null)
+        if (player != null)
         {
-           
+            if(rightInput.isPressed != leftInput.isPressed)
+            {
+                switch (rightInput.isPressed)
+                {
+                    case RightDirection:
+                        player.MoveRight();
+                        break;
+                    case LeftDirection:
+                        player.MoveLeft();
+                        break;
+                }
+            }
+            if(jumpInput.isPressed == true)
+            {
+                player.Jump();
+            }
         }
         upInput.isPressed = false;
         downInput.isPressed = false;
