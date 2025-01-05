@@ -156,11 +156,8 @@ public class SoundManager : Manager<SoundManager>
     protected override void OnValidate()
     {
         base.OnValidate();
-        if (instance == this)
-        {
-            musicVolume = _musicVolume;
-            effectVolume = _effectVolume;
-        }
+        musicVolume = _musicVolume;
+        effectVolume = _effectVolume;
     }
 #endif
 
@@ -176,72 +173,83 @@ public class SoundManager : Manager<SoundManager>
     /// 배경음악을 플레이 시켜주는 함수(인덱스를 벗어나면 배경음을 정지 시킴)
     /// </summary>
     /// <param name="music"></param>
+    /// <param name="immediately"></param>
     public static void Play(Music music, bool immediately = false)
     {
         int index = (int)music;
         int length = instance._musicClips.Length;
         if (index >= 0 && index < length)
         {
-            if (instance._musicClips[index] != null)
+            Play(instance._musicClips[index], immediately);
+        }
+        else if(music == Music.End)
+        {
+            Stop(immediately);
+        }
+    }
+
+    /// <summary>
+    /// 배경음악을 플레이 시켜주는 함수
+    /// </summary>
+    /// <param name="audioClip"></param>
+    /// <param name="immediately"></param>
+    public static void Play(AudioClip audioClip, bool immediately)
+    {
+        if (audioClip != null)
+        {
+            instance.StopCoroutine(DoSmoothlyPlay(null, null), true);
+            if (immediately == true)
             {
-                instance.StopCoroutine(DoSmoothlyPlay(null, null), true);
-                if (immediately == true)
+                if (instance.getMusicAudio1.isPlaying == false)
                 {
-                    if (instance.getMusicAudio1.isPlaying == false)
-                    {
-                        Play(instance.getMusicAudio1, instance.getMusicAudio2);
-                    }
-                    else
-                    {
-                        Play(instance.getMusicAudio2, instance.getMusicAudio1);
-                    }
-                    void Play(AudioSource crescendo, AudioSource diminuendo)
-                    {
-                        diminuendo.Stop();
-                        crescendo.clip = instance._musicClips[index];
-                        crescendo.volume = musicVolume;
-                        crescendo.Play();
-                    }
+                    Play(instance.getMusicAudio1, instance.getMusicAudio2);
                 }
                 else
                 {
-                    if (instance.getMusicAudio1.isPlaying == false)
-                    {
-                        instance.StartCoroutine(DoSmoothlyPlay(instance.getMusicAudio1, instance.getMusicAudio2), true);
-                    }
-                    else
-                    {
-                        instance.StartCoroutine(DoSmoothlyPlay(instance.getMusicAudio2, instance.getMusicAudio1), true);
-                    }
+                    Play(instance.getMusicAudio2, instance.getMusicAudio1);
                 }
-                IEnumerator DoSmoothlyPlay(AudioSource crescendo, AudioSource diminuendo)
+                void Play(AudioSource crescendo, AudioSource diminuendo)
                 {
-                    crescendo.clip = instance._musicClips[index];
-                    crescendo.Play();
-                    float volume = 0;
-                    while (volume < musicVolume)
-                    {
-                        crescendo.volume = volume;
-                        diminuendo.volume = Mathf.Clamp01(musicVolume - volume);
-                        volume += Time.deltaTime;
-                        yield return null;
-                    }
-                    crescendo.volume = musicVolume;
-                    diminuendo.volume = 0;
                     diminuendo.Stop();
+                    crescendo.clip = audioClip;
+                    crescendo.volume = musicVolume;
+                    crescendo.Play();
                 }
             }
-        }
-        else
-        {
-            StopMusic(immediately);
+            else
+            {
+                if (instance.getMusicAudio1.isPlaying == false)
+                {
+                    instance.StartCoroutine(DoSmoothlyPlay(instance.getMusicAudio1, instance.getMusicAudio2), true);
+                }
+                else
+                {
+                    instance.StartCoroutine(DoSmoothlyPlay(instance.getMusicAudio2, instance.getMusicAudio1), true);
+                }
+            }
+            IEnumerator DoSmoothlyPlay(AudioSource crescendo, AudioSource diminuendo)
+            {
+                crescendo.clip = audioClip;
+                crescendo.Play();
+                float volume = 0;
+                while (volume < musicVolume)
+                {
+                    crescendo.volume = volume;
+                    diminuendo.volume = Mathf.Clamp01(musicVolume - volume);
+                    volume += Time.deltaTime;
+                    yield return null;
+                }
+                crescendo.volume = musicVolume;
+                diminuendo.volume = 0;
+                diminuendo.Stop();
+            }
         }
     }
 
     /// <summary>
     /// 배경음악을 정지 시켜주는 함수
     /// </summary>
-    public static void StopMusic(bool immediately = false)
+    public static void Stop(bool immediately = false)
     {
         instance.StopCoroutine(DoSmoothlyStop(), true);
         if (immediately == true)
@@ -293,12 +301,24 @@ public class SoundManager : Manager<SoundManager>
         int length = instance._effectClips.Length;
         if (index >= 0 && index < length)
         {
+            Play(instance._effectClips[index]);
+        }
+    }
+
+    /// <summary>
+    /// 효과음을 플레이 시켜주는 함수
+    /// </summary>
+    /// <param name="audioClip"></param>
+    public static void Play(AudioClip audioClip)
+    {
+        if (audioClip != null)
+        {
             int count = instance._effectAudioList.Count;
-            for(int i = 0; i < count; i++)
+            for (int i = 0; i < count; i++)
             {
                 if (instance._effectAudioList[i].isPlaying == false)
                 {
-                    instance._effectAudioList[i].PlayOneShot(instance._effectClips[index]);
+                    instance._effectAudioList[i].PlayOneShot(audioClip);
                     return;
                 }
             }
@@ -306,7 +326,7 @@ public class SoundManager : Manager<SoundManager>
             audioSource.playOnAwake = false;
             audioSource.loop = false;
             audioSource.volume = effectVolume;
-            audioSource.PlayOneShot(instance._effectClips[index]);
+            audioSource.PlayOneShot(audioClip);
             instance._effectAudioList.Add(audioSource);
         }
     }
@@ -314,7 +334,7 @@ public class SoundManager : Manager<SoundManager>
     /// <summary>
     /// 모든 효과음들을 정지 시켜주는 함수
     /// </summary>
-    public static void StopEffect()
+    public static void Stop()
     {
         int count = instance._effectAudioList.Count;
         for (int i = 0; i < count; i++)
