@@ -21,13 +21,9 @@ public abstract class Manager<T> : MonoBehaviour where T: MonoBehaviour
             //만약 싱글턴을 호출 했는데 내용이 없을 경우 새로운 게임 오브젝트를 만들어서 내용물을 넣어준다.
             if (_instance == null)
             {
-                _instance = FindObjectOfType<T>();
-                if (_instance == null)
-                {
-                    GameObject gameObject = new GameObject();
-                    gameObject.AddComponent<T>();
-                    gameObject.name = _instance.GetType().Name;
-                }
+                GameObject gameObject = new GameObject();
+                gameObject.AddComponent<T>();
+                gameObject.name = _instance.GetType().Name;
             }
             return _instance;
         }
@@ -65,22 +61,19 @@ public abstract class Manager<T> : MonoBehaviour where T: MonoBehaviour
 #if UNITY_EDITOR
     protected virtual void OnValidate()
     {
-        if (gameObject.scene == SceneManager.GetActiveScene())
+        //대표하는 싱글턴 객체가 없다면 씬에서 객체에 해당하는 오브젝트를 찾는다.
+        if (_instance == null)
         {
-            //대표하는 싱글턴 객체가 없다면 씬에서 객체에 해당하는 오브젝트를 찾는다.
-            if (_instance == null)
-            {
-                _instance = (T)FindObjectOfType(typeof(T));
-            }
-            //이 대상이 대표하는 싱글턴 객체가 아니라면 콜백 함수로 삭제해준다.
-            UnityEditor.EditorApplication.delayCall += () =>
-            {
-                if (this != _instance && this != null)
-                {
-                    UnityEditor.Undo.DestroyObjectImmediate(this);
-                }
-            };
+            _instance = (T)FindObjectOfType(typeof(T));
         }
+        //이 대상이 대표하는 싱글턴 객체가 아니라면 콜백 함수로 삭제해준다.
+        UnityEditor.EditorApplication.delayCall += () =>
+        {
+            if (this != _instance && this != null)
+            {
+                UnityEditor.Undo.DestroyObjectImmediate(this);
+            }
+        };
     }
 #endif
 

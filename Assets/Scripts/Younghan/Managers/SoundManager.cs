@@ -156,11 +156,8 @@ public class SoundManager : Manager<SoundManager>
     protected override void OnValidate()
     {
         base.OnValidate();
-        //if (this == instance)
-        //{
-        //    musicVolume = _musicVolume;
-        //    effectVolume = _effectVolume;
-        //}
+        musicVolume = _musicVolume;
+        effectVolume = _effectVolume;
     }
 #endif
 
