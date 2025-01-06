@@ -7,6 +7,8 @@ public interface IWalkable
     public void MoveRight();
     //왼쪽으로 이동
     public void MoveLeft();
+    //
+    public void MoveStop();
 }
 
 //뛰어 오를 수 있는 객체들이 상속 받는 인터페이스

@@ -71,6 +71,10 @@ public class Controller : MonoBehaviour
                         break;
                 }
             }
+            else
+            {
+                player.MoveStop();
+            }
             if(jumpInput.isPressed == true)
             {
                 player.Jump();
