@@ -501,6 +501,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _movingSpeed: 5
   _jumpValue: 10
+  _gizmoColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!70 &1280998827
 CapsuleCollider2D:
   m_ObjectHideFlags: 0
@@ -534,8 +535,8 @@ CapsuleCollider2D:
   m_UsedByEffector: 0
   m_UsedByComposite: 0
   m_Offset: {x: 0, y: 0}
-  m_Size: {x: 2.84, y: 2}
-  m_Direction: 1
+  m_Size: {x: 1.06, y: 2}
+  m_Direction: 0
 --- !u!1 &1331928541
 GameObject:
   m_ObjectHideFlags: 0

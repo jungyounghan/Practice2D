@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -6,6 +7,12 @@ using UnityEngine;
 /// </summary>
 public class Player : Runner
 {
+    private Action _action = null;
+
+    public void Initialize()
+    {
+    }
+
     public void Attack1()
     {
 
