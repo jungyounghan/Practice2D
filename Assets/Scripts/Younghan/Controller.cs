@@ -14,6 +14,9 @@ public class Controller : MonoBehaviour
     //조종할 대상 플레이어
     public Player player;
 
+    /// <summary>
+    /// 특정 키보드 입력이 이루어졌는지 확인하고 그 결과를 반환하는 구조체 
+    /// </summary>
     [Serializable]
     private struct Input
     {
@@ -27,23 +30,32 @@ public class Controller : MonoBehaviour
         }
     }
 
-    [SerializeField]
+    //방향키 ↑
+    [SerializeField, Header("방향키 ↑")]
     private Input upInput;
-    [SerializeField]
+    //방향키 ↓
+    [SerializeField, Header("방향키 ↓")]
     private Input downInput;
-    [SerializeField]
+    //방향키 ←
+    [SerializeField, Header("방향키 ←")]
     private Input leftInput;
-    [SerializeField]
+    //방향키 →
+    [SerializeField, Header("방향키 →")]
     private Input rightInput;
-    [SerializeField]
+    //점프
+    [SerializeField, Header("점프")]
     private Input jumpInput;
-    [SerializeField]
+    //체력 회복
+    [SerializeField, Header("체력 회복")]
     private Input healInput;
-    [SerializeField]
+    //공격 1
+    [SerializeField, Header("공격 1")]
     private Input attack1Input;
-    [SerializeField]
+    //공격 2
+    [SerializeField, Header("공격 2")]
     private Input attack2Input;
-    [SerializeField]
+    //공격 3
+    [SerializeField, Header("공격 3")]
     private Input attack3Input;
 
     private void Update()
@@ -75,9 +87,36 @@ public class Controller : MonoBehaviour
             {
                 player.MoveStop();
             }
-            if(jumpInput.isPressed == true)
+            if (upInput.isPressed == true)
             {
-                player.Jump();
+                player.MoveUp();
+            }
+            if (jumpInput.isPressed == true)
+            {
+                if (downInput.isPressed == true)
+                {
+                    player.MoveDown();
+                }
+                else
+                {
+                    player.Jump();
+                }
+            }
+            if (healInput.isPressed == true)
+            {
+                player.Heal();
+            }
+            if (attack1Input.isPressed == true)
+            {
+                player.Attack1();
+            }
+            if (attack2Input.isPressed == true)
+            {
+                player.Attack2();
+            }
+            if (attack3Input.isPressed == true)
+            {
+                player.Attack3();
             }
         }
         upInput.isPressed = false;
@@ -91,6 +130,10 @@ public class Controller : MonoBehaviour
         attack3Input.isPressed = false;
     }
 
+    /// <summary>
+    /// 특정 키보드 입력을 받는 객체에 해당 키가 눌러졌는지 확인하고 결과를 넣어주는 메서드
+    /// </summary>
+    /// <param name="input"></param>
     private void Set(ref Input input)
     {
         int length = input.keyCodes != null ? input.keyCodes.Length : 0;

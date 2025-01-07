@@ -63,7 +63,7 @@ public abstract class Manager<T> : MonoBehaviour where T: MonoBehaviour
     /// 이 함수는 스크립트가 로드되거나 검사기에서 값이 변경될 때 호출된다.(편집기에서만 호출됨)
     /// </summary>
 #if UNITY_EDITOR
-    protected virtual void OnValidate()
+    private void OnValidate()
     {
         if (gameObject.scene == SceneManager.GetActiveScene())
         {

@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Sound;
+using UnityEngine.SceneManagement;
 
 //소리의 유형을 분류한 네임 스페이스
 namespace Sound
@@ -25,7 +26,7 @@ namespace Sound
 /// 게임의 배경음악과 효과음을 총괄하는 매니저, 싱글턴을 상속 받은 클래스
 /// </summary>
 [RequireComponent(typeof(AudioSource))]
-public class SoundManager : Manager<SoundManager>
+public sealed class SoundManager : Manager<SoundManager>
 {
     private bool _hasAudioSource1 = false;
 
@@ -148,21 +149,6 @@ public class SoundManager : Manager<SoundManager>
             }
         }
     }
-
-    /// <summary>
-    /// 이 함수는 스크립트가 로드되거나 검사기에서 값이 변경될 때 호출된다.(편집기에서만 호출됨)
-    /// </summary>
-#if UNITY_EDITOR
-    protected override void OnValidate()
-    {
-        base.OnValidate();
-        //if (this == instance)
-        //{
-        //    musicVolume = _musicVolume;
-        //    effectVolume = _effectVolume;
-        //}
-    }
-#endif
 
     /// <summary>
     /// 초기화 함수: 싱글턴 객체의 삭제를 방지한다.

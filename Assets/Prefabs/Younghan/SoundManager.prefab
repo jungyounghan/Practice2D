@@ -242,5 +242,5 @@ MonoBehaviour:
   - {fileID: 0}
   _effectClips:
   - {fileID: 0}
-  _musicVolume: 0
+  _musicVolume: 0.286
   _effectVolume: 0

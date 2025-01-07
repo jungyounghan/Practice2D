@@ -1,31 +1,28 @@
 #if UNITY_EDITOR
 using System.IO;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
-using static Expression;
 
 /// <summary>
 /// 특정 수식의 레벨에 대한 결과값을 알려주는 수식 에디터
 /// </summary>
 public class ExpressionWindow : EditorWindow
 {
-    private static readonly string TEXT_SELECTED_FORMULA = "선택된 수식";
-    private static readonly string TEXT_SELECTED_UNKNOWN = "선택된 미지수의 값";
-    private static readonly string TEXT_FOLDER_PATH = "Assets/Resources/Managers/";
+    private static readonly string TextFolderPath = "Assets/Resources/Expressions/";
+    private static readonly string TextSelectedFormula = "선택된 수식";
 
-    //private static readonly string TextFolderPath = "Assets/Resources/Managers/";
-
-    private const bool SELECTION_WRITE = true;
-    private const bool SELECTION_READ = false;
+    private const bool Write = true;
+    private const bool Read = false;
 
     private bool selection = true;
 
     [SerializeField]
     private string text;
     [SerializeField]
-    private Term term;
+    private Expression.Term term;
     [SerializeField]
-    private Extra[] extras;
+    private Expression.Extra[] extras;
     [SerializeField]
     private bool sum;
 
@@ -37,23 +34,23 @@ public class ExpressionWindow : EditorWindow
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("쓰기"))
         {
-            if(selection != SELECTION_WRITE)
+            if(selection != Write)
             {
                 SetPropertiesValue();
             }
-            selection = SELECTION_WRITE;
+            selection = Write;
         }
         if (GUILayout.Button("읽기"))
         {
-            selection = SELECTION_READ;
+            selection = Read;
         }
         EditorGUILayout.EndHorizontal();
         GUILayout.Space(40f);
         switch(selection)
         {
-            case SELECTION_WRITE:
+            case Write:
                 Expression previous = expression;
-                expression = EditorGUILayout.ObjectField(TEXT_SELECTED_FORMULA, expression, typeof(Expression), true) as Expression;
+                expression = EditorGUILayout.ObjectField(TextSelectedFormula, expression, typeof(Expression), true) as Expression;
                 if(previous != expression)
                 {
                     SetPropertiesValue();
@@ -72,13 +69,13 @@ public class ExpressionWindow : EditorWindow
                     {
                         if(expression.name != text)
                         {
-                            if (AssetDatabase.LoadAssetAtPath(string.Format(TEXT_FOLDER_PATH + "{0}" + Archive.TEXT_EXTENSION_ASSET, text), typeof(Expression)) as Expression != null)
+                            if (AssetDatabase.LoadAssetAtPath(string.Format(TextFolderPath + "{0}.asset", text), typeof(Expression)) as Expression != null)
                             {
                                 Debug.LogError("이미 중복되는 이름을 가진 수식이 있습니다.");
                             }
                             else
                             {
-                                AssetDatabase.RenameAsset(TEXT_FOLDER_PATH + expression.name + Archive.TEXT_EXTENSION_ASSET, text);
+                                AssetDatabase.RenameAsset(TextFolderPath + expression.name + ".asset", text);
                             }
                         }
                         expression.term = term;
@@ -88,7 +85,7 @@ public class ExpressionWindow : EditorWindow
                     }
                     if (GUILayout.Button("삭제"))
                     {
-                        AssetDatabase.DeleteAsset(TEXT_FOLDER_PATH + expression.name + Archive.TEXT_EXTENSION_ASSET);
+                        AssetDatabase.DeleteAsset(TextFolderPath + expression.name + ".asset");
                         expression = null;
                     }
                 }
@@ -100,33 +97,23 @@ public class ExpressionWindow : EditorWindow
                     }
                     else
                     {
-
-                        //StringBuilder currentPath = new StringBuilder();
-                        //StringBuilder previousPath = new StringBuilder();
-                        //string[] path = TextFolderPath.Split('/');
-                        //int length = path.Length - 1;
-                        //for (int i = 0; i < length; ++i)
-                        //{
-                        //    currentPath.Append(path[i]);
-                        //    if (Directory.Exists(currentPath.ToString()) == false)
-                        //    {
-                        //        AssetDatabase.CreateFolder(previousPath.ToString(), path[i]);
-                        //    }
-                        //    previousPath.Clear();
-                        //    previousPath.Append(currentPath);
-                        //    currentPath.Append("/");
-                        //}
-
-
-
-
-
                         //해당 경로에 폴더가 없다면 새로 생성
-                        if (Directory.Exists(TEXT_FOLDER_PATH) == false)
-                        {                            //Directory.CreateDirectory(path); 바로 인식이 안됨
-                            AssetDatabase.CreateFolder(Archive.TEXT_PATH_ASSETS + "/" + Archive.TEXT_PATH_RESOURCES, Archive.TEXT_PATH_EXPRESSIONS);
+                        StringBuilder currentPath = new StringBuilder();
+                        StringBuilder previousPath = new StringBuilder();
+                        string[] path = TextFolderPath.Split('/');
+                        int length = path.Length - 1;
+                        for (int i = 0; i < length; ++i)
+                        {
+                            currentPath.Append(path[i]);
+                            if (Directory.Exists(currentPath.ToString()) == false)
+                            {
+                                AssetDatabase.CreateFolder(previousPath.ToString(), path[i]);
+                            }
+                            previousPath.Clear();
+                            previousPath.Append(currentPath);
+                            currentPath.Append("/");
                         }
-                        expression = AssetDatabase.LoadAssetAtPath(string.Format(TEXT_FOLDER_PATH + "{0}.asset", text), typeof(Expression)) as Expression;
+                        expression = AssetDatabase.LoadAssetAtPath(string.Format(TextFolderPath + "{0}.asset", text), typeof(Expression)) as Expression;
                         //경로를 열었는데 해당 수식이 없다면 새로 생성
                         if (expression == null)
                         {
@@ -134,7 +121,7 @@ public class ExpressionWindow : EditorWindow
                             expression.term = term;
                             expression.extras = extras;
                             expression.sum = sum;
-                            AssetDatabase.CreateAsset(expression, string.Format(TEXT_FOLDER_PATH + "{0}.asset", text));
+                            AssetDatabase.CreateAsset(expression, string.Format(TextFolderPath + "{0}.asset", text));
                         }
                         //만약 있다면 내용을 새로 수정
                         else
@@ -147,8 +134,8 @@ public class ExpressionWindow : EditorWindow
                     }
                 }
                 break;
-            case SELECTION_READ:
-                expression = EditorGUILayout.ObjectField(TEXT_SELECTED_FORMULA, expression, typeof(Expression), true) as Expression;
+            case Read:
+                expression = EditorGUILayout.ObjectField(TextSelectedFormula, expression, typeof(Expression), true) as Expression;
                 if (expression == null)
                 {
                     HideLevelText();
@@ -164,7 +151,7 @@ public class ExpressionWindow : EditorWindow
                     }
                     else
                     {
-                        string value = EditorGUILayout.TextField(TEXT_SELECTED_UNKNOWN, level.ToString());
+                        string value = EditorGUILayout.TextField("선택된 미지수의 값", level.ToString());
                         if(uint.TryParse(value, out level) == false)
                         {
                             level = 0;
@@ -197,7 +184,7 @@ public class ExpressionWindow : EditorWindow
         else
         {
             text = null;
-            term = new Term();
+            term = new Expression.Term();
             extras = null;
             sum = false;
         }
@@ -211,7 +198,7 @@ public class ExpressionWindow : EditorWindow
     }
 
     //창을 열어주는 함수
-    [MenuItem("Tools/Test/Expression")]
+    [MenuItem("ScriptableObjects/Expression")]
     private static void ShowWindow()
     {
         ExpressionWindow expressionWindow = (ExpressionWindow)GetWindow(typeof(ExpressionWindow));
