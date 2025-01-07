@@ -49,18 +49,32 @@ public struct Strike
     public abstract class Area
     {
 #if UNITY_EDITOR
-        protected static readonly float DotSize = 0.01f;
+        private static readonly float DotSize = 0.01f;
         protected static readonly float DrawDuration = 3;
 
-        protected static void DrawDot(Vector2 point)
+        protected static void DrawDot(Vector2 point, Color color, float duration)
         {
-            Debug.DrawLine(point, point, Color.red, DrawDuration);
+            float half = DotSize * 0.5f;
+            Vector2 dot1 = new Vector2(point.x + half, point.y + half);
+            Vector2 dot2 = new Vector2(point.x - half, point.y + half);
+            Vector2 dot3 = new Vector2(point.x - half, point.y - half);
+            Vector2 dot4 = new Vector2(point.x + half, point.y - half);
+            Debug.DrawLine(dot1, dot2, color, duration);
+            Debug.DrawLine(dot2, dot3, color, duration);
+            Debug.DrawLine(dot3, dot4, color, duration);
+            Debug.DrawLine(dot4, dot1, color, duration);
+        }
+#endif
+
+        protected static Vector2[] GetColliderEdges(Collider2D collider)
+        {
+
+            return new Vector2[0];
         }
 
-        public abstract void Draw();
-#endif
-        public abstract bool CanStrike(IHittable hittable);
+        public abstract void Show();
 
+        public abstract bool CanStrike(IHittable hittable);
     }
 
     /// <summary>
@@ -75,9 +89,10 @@ public struct Strike
             this.tags = tags;
         }
 
-#if UNITY_EDITOR
-        public override void Draw()
+
+        public override void Show()
         {
+#if UNITY_EDITOR
             int length = tags != null ? tags.Length : 0;
             if (length > 0)
             {
@@ -90,8 +105,8 @@ public struct Strike
             {
                 Debug.Log($"<color=black>타격 대상 없음</color>");
             }
-        }
 #endif
+        }
 
         public override bool CanStrike(IHittable hittable)
         {
@@ -122,17 +137,27 @@ public struct Strike
             this.hittables = hittables;
         }
 
-
-#if UNITY_EDITOR
-        public override void Draw()
+        public override void Show()
         {
+#if UNITY_EDITOR
             int length = hittables != null? hittables.Length : 0;
             for(int i = 0; i < length; i++)
             {
-                Handles.DotHandleCap(0, hittables[i].position, Quaternion.identity, DotSize, EventType.Repaint);
+                Vector2[] vectors = GetColliderEdges(hittables[i].GetCollider2D());
+                for (int j = 0; j < vectors.Length; j++)
+                {
+                    if (j > 0)
+                    {
+                        Debug.DrawLine(vectors[j - 1], vectors[j], Color.red, DrawDuration);
+                        if (j == vectors.Length - 1)
+                        {
+                            Debug.DrawLine(vectors[j], vectors[0], Color.red, DrawDuration);
+                        }
+                    }
+                }
             }
-        }
 #endif
+        }
 
         public override bool CanStrike(IHittable hittable)
         {
@@ -166,10 +191,9 @@ public struct Strike
             this.points = points;
         }
 
-#if UNITY_EDITOR
-        public override void Draw()
+        public override void Show()
         {
-            Handles.color = Color.red;
+#if UNITY_EDITOR
             int length = points != null ? points.Length : 0;
             if (length > 0)
             {
@@ -179,25 +203,25 @@ public struct Strike
                     {
                         if (center + points[i - 1] != center + points[i])
                         {
-                            Handles.DrawLine(center + points[i - 1], center + points[i]);
+                            Debug.DrawLine(center + points[i - 1], center + points[i], Color.red, DrawDuration);
                         }
                         else
                         {
-                            Handles.DotHandleCap(0, center + points[i], Quaternion.identity, DotSize, EventType.Repaint);
+                            DrawDot(center + points[i], Color.red, DrawDuration);
                         }
                     }
                 }
                 else if (length > 0)
                 {
-                    Handles.DotHandleCap(0, center + points[0], Quaternion.identity, DotSize, EventType.Repaint);
+                    DrawDot(center + points[0], Color.red, DrawDuration);
                 }
             }
             else
             {
-                Handles.DotHandleCap(0, center, Quaternion.identity, DotSize, EventType.Repaint);
+                DrawDot(center, Color.red, DrawDuration);
             }
-        }
 #endif
+        }
 
         public override bool CanStrike(IHittable hittable)
         {
@@ -245,34 +269,6 @@ public struct Strike
                         float t = ((c.x - a.x) * (d.y - c.y) - (c.y - a.y) * (d.x - c.x)) / det;
                         float u = ((c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x)) / det;
                         return (t >= 0 && t <= 1 && u >= 0 && u <= 1); // 교차 조건
-                    }
-                    Vector2[] GetColliderEdges(Collider2D collider)
-                    {
-                        // EdgeCollider2D에서 경계 가져오기
-                        if (collider is EdgeCollider2D edgeCollider)
-                        {
-                            Vector2[] points = edgeCollider.points;
-                            Vector2[] worldEdges = new Vector2[points.Length * 2];
-                            for (int i = 0; i < points.Length - 1; i++)
-                            {
-                                worldEdges[i * 2] = edgeCollider.transform.TransformPoint(points[i]);
-                                worldEdges[i * 2 + 1] = edgeCollider.transform.TransformPoint(points[i + 1]);
-                            }
-                            return worldEdges;
-                        }
-                        // PolygonCollider2D에서 경계 가져오기
-                        if (collider is PolygonCollider2D polygonCollider)
-                        {
-                            Vector2[] points = polygonCollider.points;
-                            Vector2[] worldEdges = new Vector2[points.Length * 2];
-                            for (int i = 0; i < points.Length - 1; i++)
-                            {
-                                worldEdges[i * 2] = polygonCollider.transform.TransformPoint(points[i]);
-                                worldEdges[i * 2 + 1] = polygonCollider.transform.TransformPoint(points[i + 1]);
-                            }
-                            return worldEdges;
-                        }
-                        return new Vector2[0];
                     }
                 }
                 else

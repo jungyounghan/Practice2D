@@ -14,7 +14,7 @@ public class GameManager : Manager<GameManager>
     protected override void Initialize()
     {
         _destroyOnLoad = true;
-        _controller1.player.Initialize(Report);
+        _controller1.player.Initialize(Report, CanInteraction);
     }
 
     private void ShowEffect(GameObject effectObject, Vector2 position)
@@ -24,7 +24,7 @@ public class GameManager : Manager<GameManager>
 
     private void Hit(Strike strike, IHittable hittable, GameObject effectObject)
     {
-        ShowEffect(effectObject, hittable.position);
+        ShowEffect(effectObject, hittable.GetCollider2D().bounds.center);
         hittable.Hit(strike);
     }
 
@@ -34,14 +34,7 @@ public class GameManager : Manager<GameManager>
         //사망하면 개별 보고
     }
 
-    /// <summary>
-    /// 보고하는 함수
-    /// </summary>
-    /// <param name="strike"></param>
-    /// <param name="area"></param>
-    /// <param name="effectObject"></param>
-    /// <param name="strikeable"></param>
-    public static void Report(Strike strike, Strike.Area area, GameObject effectObject, IStrikeable strikeable)
+    public static void Report(Strike strike, Strike.Area area, GameObject effectObject)
     {
         if(area == null)
         {
@@ -67,5 +60,11 @@ public class GameManager : Manager<GameManager>
                 }
             }
         }
+    }
+
+    public static bool CanInteraction(Player.Interaction interaction)
+    {
+
+        return false;
     }
 }

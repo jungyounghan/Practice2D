@@ -13,19 +13,7 @@ public interface IPositionable
 }
 
 /// <summary>
-/// 한 방향으로 바라볼 수 있는 객체들이 상속 받는 인터페이스
-/// </summary>
-public interface ILookable
-{
-    //오른쪽으로 바라봄
-    public void LookRight();
-
-    //왼쪽으로 바라봄
-    public void LookLeft();
-}
-
-/// <summary>
-/// 오른쪽 또는 왼쪽으로 이동할 수 있는 객체들이 상속 받는 인터페이스
+/// 오른쪽 또는 왼쪽으로 이동하거나 바라볼 수 있는 객체들이 상속 받는 인터페이스
 /// </summary>
 public interface IMovable
 {
@@ -55,7 +43,7 @@ public interface IJumpable
 /// <summary>
 /// 피격 당할 수 있는 객체들이 상속 받는 인터페이스
 /// </summary>
-public interface IHittable: IPositionable
+public interface IHittable
 {
     public bool isAlive {
         get;
@@ -75,9 +63,9 @@ public interface IHittable: IPositionable
 }
 
 /// <summary>
-/// 
+/// 상호 작용 할 수 있는 객체들이 상속 받는 인터페이스
 /// </summary>
-public interface IStrikeable : IPositionable
+public interface Iinteractable
 {
-    public void Strike(Skill skill, uint level = 0);
+    public bool CanInteraction(Vector2 position);
 }

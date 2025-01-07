@@ -45,9 +45,15 @@ public class Controller : MonoBehaviour
     //점프
     [SerializeField, Header("점프")]
     private Input jumpInput;
+    //상호 작용
+    [SerializeField, Header("상호 작용")]
+    private Input interactionInput;
     //체력 회복
     [SerializeField, Header("체력 회복")]
     private Input healInput;
+    //궁극기
+    [SerializeField, Header("궁극기")]
+    private Input lethalInput;
     //공격 1
     [SerializeField, Header("공격 1")]
     private Input attack1Input;
@@ -58,6 +64,8 @@ public class Controller : MonoBehaviour
     [SerializeField, Header("공격 3")]
     private Input attack3Input;
 
+    //캔버스가 활성화 될 때는 캔버스를 선택하는 내용으로 바꿈
+
     private void Update()
     {
         Set(ref upInput);
@@ -65,7 +73,9 @@ public class Controller : MonoBehaviour
         Set(ref leftInput);
         Set(ref rightInput);
         Set(ref jumpInput);
+
         Set(ref healInput);
+        Set(ref lethalInput);
         Set(ref attack1Input);
         Set(ref attack2Input);
         Set(ref attack3Input);
@@ -102,9 +112,17 @@ public class Controller : MonoBehaviour
                     player.Jump();
                 }
             }
+            if(interactionInput.isPressed == true)
+            {
+
+            }
             if (healInput.isPressed == true)
             {
                 player.Heal();
+            }
+            if(lethalInput.isPressed == true)
+            {
+                player.UseLethalMove();
             }
             if (attack1Input.isPressed == true)
             {
@@ -124,7 +142,9 @@ public class Controller : MonoBehaviour
         leftInput.isPressed = false;
         rightInput.isPressed = false;
         jumpInput.isPressed = false;
+        interactionInput.isPressed = false;
         healInput.isPressed = false;
+        lethalInput.isPressed = false;
         attack1Input.isPressed = false;
         attack2Input.isPressed = false;
         attack3Input.isPressed = false;

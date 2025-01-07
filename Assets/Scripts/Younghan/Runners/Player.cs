@@ -4,28 +4,35 @@ using UnityEngine;
 /// <summary>
 /// 유저가 조종하게 되는 플레이어 클래스
 /// </summary>
-public class Player : Runner, ILookable, IHittable
+public class Player : Runner, IHittable
 {
+    public enum Interaction
+    {
+        Pick,
+        MoveUp,
+        MoveDown
+    }
+
     [SerializeField]
     private Animator _animator = null;
 
     public bool isAlive
     {
         get;
-        set;
     }
 
+    //피격 보고 액션
 
-    private Action<Strike, Strike.Area, GameObject, IStrikeable> _reportAction = null;
+    private Action<Strike, Strike.Area, GameObject> _strikeAction = null;
+    
+    //마법구체 발사 액션
 
-    private void OnDrawGizmos()
+    private Func<Interaction, bool> _interactionFunction = null;
+
+    public void Initialize(Action<Strike, Strike.Area, GameObject> strikeAction, Func<Interaction, bool> interactionFunction)
     {
-      
-    }
-
-    public void Initialize(Action<Strike, Strike.Area, GameObject, IStrikeable> reportAction)
-    {
-        _reportAction = reportAction;
+        _strikeAction = strikeAction;
+        _interactionFunction = interactionFunction;
     }
 
     public void Heal()
@@ -33,10 +40,20 @@ public class Player : Runner, ILookable, IHittable
 
     }
 
+    public void UseLethalMove()
+    {
+
+    }
+
     public void Attack1()
     {
-        Strike.PolygonArea polygonArea = new Strike.PolygonArea(position, null, null);
-        polygonArea.Draw();
+        //Strike.PolygonArea polygonArea = new Strike.PolygonArea(position, null, null);
+        //polygonArea.Show();
+        //Strike.TagArea tagArea = new Strike.TagArea(new string[] {"Player"});
+        //tagArea.Show();
+        Strike.TargetArea targetArea = new Strike.TargetArea(new IHittable[1] { this});
+        targetArea.Show();
+
     }
 
     public void Attack2()
@@ -51,20 +68,15 @@ public class Player : Runner, ILookable, IHittable
 
     public void MoveUp()
     {
-
+        if(_interactionFunction != null && _interactionFunction.Invoke(Interaction.MoveUp) == true)
+        {
+            //성공하면 애니메이션 바꾸기
+        }
     }
 
     public void MoveDown()
     {
 
-    }
-
-    public void LookRight()
-    {
-    }
-
-    public void LookLeft()
-    {
     }
 
     public void Hit(Strike strike)

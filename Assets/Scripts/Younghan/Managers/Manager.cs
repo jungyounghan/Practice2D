@@ -15,7 +15,7 @@ public abstract class Manager<T> : MonoBehaviour where T: MonoBehaviour
     //싱글턴 객체
     private static T _instance = null;
 
-    public static T instance {
+    protected static T instance {
         get
         {
             //만약 싱글턴을 호출 했는데 내용이 없을 경우 새로운 게임 오브젝트를 만들어서 내용물을 넣어준다.
