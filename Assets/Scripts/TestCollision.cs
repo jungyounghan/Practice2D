@@ -15,12 +15,12 @@ public class TestCollision : MonoBehaviour
     private void OnDrawGizmos()
     {
         Boundary sample = boundary + transform;
-        sample.DrawSide();
+        sample.Draw();
         int length = collider2Ds != null ? collider2Ds.Length : 0;
         for (int i = 0; i < length; i++)
         {
             Boundary boundary = new Boundary(collider2Ds[i]);
-            boundary.DrawSide();
+            boundary.Draw();
         }
         length = vertices != null ? vertices.Length : 0;
         for (int i = 0; i < length; i++)
