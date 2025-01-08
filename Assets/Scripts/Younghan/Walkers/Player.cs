@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 유저가 조종하게 되는 플레이어 클래스
 /// </summary>
-public class Player : Runner, IHittable
+public sealed class Player : Runner, IHittable
 {
     public enum Interaction
     {
@@ -64,6 +64,26 @@ public class Player : Runner, IHittable
     public void Attack3()
     {
 
+    }
+
+    public override void MoveLeft()
+    {
+        base.MoveLeft();
+        getTransform.rotation = Quaternion.Euler(LeftRotation);
+        _animator?.SetBool("IsWork", true);
+    }
+
+    public override void MoveRight()
+    {
+        base.MoveRight();
+        getTransform.rotation = Quaternion.Euler(RightRotation);
+        _animator?.SetBool("IsWork", true);
+    }
+
+    public override void MoveStop()
+    {
+        base.MoveStop();
+        _animator?.SetBool("IsWork", false);
     }
 
     public void MoveUp()

@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// 게임의 진행을 총괄하는 매니저, 싱글턴을 상속 받은 클래스
 /// </summary>
-public class GameManager : Manager<GameManager>
+public sealed class GameManager : Manager<GameManager>
 {
     [SerializeField]
     private Controller _controller1;

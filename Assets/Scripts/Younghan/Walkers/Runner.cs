@@ -10,14 +10,14 @@ using UnityEngine;
 
 public class Runner : MonoBehaviour, IPositionable, IMovable, IJumpable
 {
-    private static readonly Vector3 LeftRotation = new Vector3(0, 180, 0);
-    private static readonly Vector3 RightRotation = new Vector3(0, 0, 0);
+    protected static readonly Vector3 LeftRotation = new Vector3(0, 180, 0);
+    protected static readonly Vector3 RightRotation = new Vector3(0, 0, 0);
 
     private bool _hasTransform = false;
 
     private Transform _transform = null;
 
-    private Transform getTransform {
+    protected Transform getTransform {
         get
         {
             if(_hasTransform == false)
