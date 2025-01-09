@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// 충돌체나 영역이 가지고 있는 정점들을 담고 있는 구조체
+/// 충돌 영역을 판단하는 정점들을 담고 있는 구조체
 /// </summary>
 [Serializable]
 public struct Boundary
@@ -183,11 +183,11 @@ public struct Boundary
     }
 
     /// <summary>
-    /// 바운더리 오퍼레이터
+    /// 바운더리와 트랜스폼 위치를 더해주는 함수
     /// </summary>
     /// <param name="boundary"></param>
     /// <param name="transform"></param>
-    /// <returns>바운더리 내용과 특정 트랜스폼을 더해주면 트랜스폼 위치에 대응하는 바운더리를 반환한다</returns>
+    /// <returns>트랜스폼 위치에 대응하는 바운더리를 반환한다</returns>
     public static Boundary operator +(Boundary boundary, Transform transform)
     {
         int length = boundary.vertices != null ? boundary.vertices.Length : 0;
@@ -198,7 +198,7 @@ public struct Boundary
         }
         return new Boundary(vectors);
     }
-    
+
     /// <summary>
     /// 이 경계선이 가지고 있는 정점들을 에디터에서 표시해주는 함수
     /// </summary>
@@ -206,57 +206,73 @@ public struct Boundary
     public void Draw(float duration = 0)
     {
 #if UNITY_EDITOR
-        int length = vertices != null ? vertices.Length : 0;
-        if(length > 0)
+        (Segment[], Polygon?) result = Polygon.GetResult(vertices);
+        //면
+        if(result.Item2 != null)
         {
-            switch (length)
-            {
-                case 1:
-                    Segment.Draw(vertices[0], Color.yellow, duration);
-                    break;
-                case 2:
-                case 3:
-                    Segment.Draw(vertices, Color.green, duration);
-                    break;
-                default:
-                    //Segment[] segments = Segment.GetArray(vertices);
-                    Polygon[] polygons = Polygon.GetArray(vertices, out Segment[] segments);
-
-                    break;
-            }
+            result.Item2.Value.Draw(Color.green, duration);
+        }
+        int length = result.Item1 != null ? result.Item1.Length : 0;
+        for (int i = 0; i < length; i++)
+        {
+            //result.Item1[i].Draw(Color.red, duration);
         }
 #endif
     }
 
     /// <summary>
-    /// 주어진 포인트가 이 다각형 내부에 포함되는지 확인
+    /// 주어진 포인트가 이 영역 내부에 포함되는지 확인
     /// </summary>
-    /// <param name="point">검사할 Vector2 포인트</param>
-    /// <returns>포인트가 내부에 있으면 참을 반환</returns>
+    /// <param name="point"></param>
+    /// <returns>포인트와 겹치면 참을 반환</returns>
     public bool Overlap(Vector2 point)
     {
-        int length = vertices != null ? vertices.Length : 0;
-        if(length > 0)
+        (Segment[], Polygon?) result = Polygon.GetResult(vertices);
+        int length = result.Item1 != null ? result.Item1.Length : 0;
+        for (int i = 0; i < length; i++)
         {
-            List<Segment> segments = new List<Segment>();
-            List<Polygon> polygons = new List<Polygon>();
-            
-
-            for(int i = 0; i < segments.Count; i++)
+            if (result.Item1[i].IsPointIn(point) == true)
             {
-                if(segments[i].IsPointIn(point) == true)
-                {
-                    return true;
-                }
-            }
-            for (int i = 0; i < polygons.Count; i++)
-            {
-                if (polygons[i].IsPointIn(point) == true)
-                {
-                    return true;
-                }
+                return true;
             }
         }
+        if (result.Item2 != null && result.Item2.Value.IsPointIn(point) == true)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 경계면 간이 겹치는지 여부를 알려주는 메서드
+    /// </summary>
+    /// <param name="boundary"></param>
+    /// <returns>경계면과 겹치면 참을 반환</returns>
+    public bool Overlap(Boundary boundary)
+    {
+        // 3. 다각형 변과 Collider 경계 검사
+        //for (int i = 0; i < length; i++)
+        //{
+        //    Vector2 vertexStart = vertices[i];
+        //    Vector2 vertexEnd = vertices[(i + 1) % length];
+        //    for (int j = 0; j < boundary.vertices.Length; j += 2)
+        //    {
+        //        Vector2 colliderStart = boundary.vertices[j];
+        //        Vector2 colliderEnd = boundary.vertices[j + 1];
+        //        // 선분의 교차 여부를 확인
+        //        float det = (vertexEnd.x - vertexStart.x) * (colliderEnd.y - colliderStart.y) - (vertexEnd.y - vertexStart.y) * (colliderEnd.x - colliderStart.x);
+        //        if (Mathf.Abs(det) < Mathf.Epsilon)
+        //        {
+        //            continue; // 선분이 평행함
+        //        }
+        //        float t = ((colliderStart.x - vertexStart.x) * (colliderEnd.y - colliderStart.y) - (colliderStart.y - vertexStart.y) * (colliderEnd.x - colliderStart.x)) / det;
+        //        float u = ((colliderStart.x - vertexStart.x) * (vertexEnd.y - vertexStart.y) - (colliderStart.y - vertexStart.y) * (vertexEnd.x - vertexStart.x)) / det;
+        //        if (t >= 0 && t <= 1 && u >= 0 && u <= 1)// 교차 조건
+        //        {
+        //            return true;
+        //        }
+        //    }
+        //}
         return false;
     }
 
@@ -270,7 +286,6 @@ public struct Boundary
         if (collider != null)
         {
             int length = vertices != null ? vertices.Length : 0;
-            //1. 다각형의 점이 Collider 내부에 있는지 확인
             for (int i = 0; i < length; i++)
             {
                 if (collider.OverlapPoint(vertices[i]) == true)
@@ -278,30 +293,9 @@ public struct Boundary
                     return true;
                 }
             }
-            // 2. Collider의 점들 가져오기
-            Boundary boundary = new Boundary(collider);
-            // 2. 다각형 변과 Collider 경계 검사
-            for (int i = 0; i < length; i++)
+            if(Overlap(new Boundary(collider)) == true)
             {
-                Vector2 vertexStart = vertices[i];
-                Vector2 vertexEnd = vertices[(i + 1) % length];
-                for (int j = 0; j < boundary.vertices.Length; j += 2)
-                {
-                    Vector2 colliderStart = boundary.vertices[j];
-                    Vector2 colliderEnd = boundary.vertices[j + 1];
-                    // 선분의 교차 여부를 확인
-                    float det = (vertexEnd.x - vertexStart.x) * (colliderEnd.y - colliderStart.y) - (vertexEnd.y - vertexStart.y) * (colliderEnd.x - colliderStart.x);
-                    if (Mathf.Abs(det) < Mathf.Epsilon)
-                    {
-                        continue; // 선분이 평행함
-                    }
-                    float t = ((colliderStart.x - vertexStart.x) * (colliderEnd.y - colliderStart.y) - (colliderStart.y - vertexStart.y) * (colliderEnd.x - colliderStart.x)) / det;
-                    float u = ((colliderStart.x - vertexStart.x) * (vertexEnd.y - vertexStart.y) - (colliderStart.y - vertexStart.y) * (vertexEnd.x - vertexStart.x)) / det;
-                    if (t >= 0 && t <= 1 && u >= 0 && u <= 1)// 교차 조건
-                    {
-                        return true;
-                    }
-                }
+                return true;
             }
         }
         return false;

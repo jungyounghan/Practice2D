@@ -9,7 +9,7 @@ public sealed class GameManager : Manager<GameManager>
     [SerializeField]
     private Controller _controller1;
 
-    private List<IHittable> hittableList = new List<IHittable>();
+    private List<IHittable> _hittableList = new List<IHittable>();
 
     protected override void Initialize()
     {
@@ -39,10 +39,10 @@ public sealed class GameManager : Manager<GameManager>
         if(area == null)
         {
             instance.Hit(strike, instance._controller1.player, effectObject);
-            int count = instance.hittableList.Count;
+            int count = instance._hittableList.Count;
             for (int i = 0; i < count; i++)
             {
-                instance.Hit(strike, instance.hittableList[i], effectObject);
+                instance.Hit(strike, instance._hittableList[i], effectObject);
             }
         }
         else
@@ -51,12 +51,12 @@ public sealed class GameManager : Manager<GameManager>
             {
                 instance.Hit(strike, instance._controller1.player, effectObject);
             }
-            int count = instance.hittableList.Count;
+            int count = instance._hittableList.Count;
             for (int i = 0; i < count; i++)
             {
-                if (area.CanStrike(instance.hittableList[i]) == true)
+                if (area.CanStrike(instance._hittableList[i]) == true)
                 {
-                    instance.Hit(strike, instance.hittableList[i], effectObject);
+                    instance.Hit(strike, instance._hittableList[i], effectObject);
                 }
             }
         }

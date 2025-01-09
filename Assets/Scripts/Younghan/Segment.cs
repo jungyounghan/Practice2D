@@ -22,6 +22,28 @@ public struct Segment
         }
     }
 
+    /// <summary>
+    /// 선분의 길이를 반환한다.
+    /// </summary>
+    public float distance
+    {
+        get
+        {
+            return Vector2.Distance(start, end);
+        }
+    }
+
+    /// <summary>
+    /// 선분의 시작과 끝을 바꿔서 반환하는 함수
+    /// </summary>
+    public Segment reverse
+    {
+        get
+        {
+            return new Segment(end, start);
+        }
+    }
+
     public Segment(Vector2 start, Vector2 end)
     {
         this.start = start;
@@ -32,16 +54,6 @@ public struct Segment
     {
         start = segment.start;
         end = segment.end;
-    }
-
-    public static bool operator >(Segment a, Segment b)
-    {
-        return a.GetDistance() > b.GetDistance();
-    }
-
-    public static bool operator <(Segment a, Segment b)
-    {
-        return a.GetDistance() < b.GetDistance();
     }
 
     /// <summary>
@@ -62,29 +74,6 @@ public struct Segment
         Debug.DrawLine(dot2, dot3, color, duration);
         Debug.DrawLine(dot3, dot4, color, duration);
         Debug.DrawLine(dot4, dot1, color, duration);
-#endif
-    }
-
-    /// <summary>
-    /// 선을 출력해주는 함수
-    /// </summary>
-    /// <param name="vertices"></param>
-    /// <param name="duration"></param>
-    public static void Draw(Vector2[] vertices, Color color, float duration)
-    {
-#if UNITY_EDITOR
-        int length = vertices != null ? vertices.Length : 0;
-        for (int i = 0; i < length - 1; i++)
-        {
-            if (vertices[i] != vertices[i + 1])
-            {
-                Debug.DrawLine(vertices[i], vertices[i + 1], color, duration);
-            }
-            else
-            {
-                Draw(vertices[i + 1], color, duration);
-            }
-        }
 #endif
     }
 
@@ -137,48 +126,34 @@ public struct Segment
         return Mathf.Abs((point - start).magnitude + (point - end).magnitude - (end - start).magnitude) < Mathf.Epsilon;
     }
 
-    public float GetDistance()
-    {
-        return Vector2.Distance(start, end);
-    }
 
     /// <summary>
     /// 교차점을 반환하는 함수
     /// </summary>
-    /// <param name="p1"></param>
-    /// <param name="p2"></param>
-    /// <param name="q1"></param>
-    /// <param name="q2"></param>
-    /// <returns>교차점이 있으면 Vector2를 반환</returns>
-    public Vector2? GetIntersection(Segment segment)
+    /// <param name="segment1"></param>
+    /// <param name="segment2"></param>
+    /// <returns>교차점이 있으면 벡터2를 반환</returns>
+    public static Vector2? GetIntersection(Segment segment1, Segment segment2)
     {
-        Vector2 segment1Vector = end - start; // 선분1 벡터
-        Vector2 segment2Vector = segment.end - segment.start; // 선분2 벡터
+        Vector2 segment1Vector = segment1.end - segment1.start; // 선분1 벡터
+        Vector2 segment2Vector = segment2.end - segment2.start; // 선분2 벡터
         float denominator = segment1Vector.x * segment2Vector.y - segment1Vector.y * segment2Vector.x;
         // 두 선분이 평행한 경우
         if (Mathf.Abs(denominator) < Mathf.Epsilon)
         {
             return null;
         }
-        Vector2 vectorDistance = segment.start - start;
-        float segment1Parameter = (vectorDistance.x * segment2Vector.y - vectorDistance.y * segment2Vector.x) / denominator; // 선분1의 파라미터
-        float segment2Parameter = (vectorDistance.x * segment1Vector.y - vectorDistance.y * segment1Vector.x) / denominator; // 선분2의 파라미터
+        Vector2 vectorDistance = segment2.start - segment1.start;
+        // 선분1의 파라미터
+        float segment1Parameter = (vectorDistance.x * segment2Vector.y - vectorDistance.y * segment2Vector.x) / denominator;
+        // 선분2의 파라미터
+        float segment2Parameter = (vectorDistance.x * segment1Vector.y - vectorDistance.y * segment1Vector.x) / denominator;
         // 선분1의 파라미터와 선분2의 파라미터가 [0, 1] 범위 내에 있으면 두 선분이 교차
         if (segment1Parameter >= 0 && segment1Parameter <= 1 && segment2Parameter >= 0 && segment2Parameter <= 1)
         {
-            return start + segment1Parameter * segment1Vector; // 교차점 반환
+            return segment1.start + segment1Parameter * segment1Vector; // 교차점 반환
         }
         // 교차하지 않음
         return null;
     }
-
-    /// <summary>
-    /// 선분의 시작과 끝을 바꿔서 반환하는 함수
-    /// </summary>
-    /// <returns>시작과 끝점을 거꾸로 위치 시켜서 반환</returns>
-    public Segment GetReverse()
-    {
-        return new Segment(end, start);
-    }
-
 }
